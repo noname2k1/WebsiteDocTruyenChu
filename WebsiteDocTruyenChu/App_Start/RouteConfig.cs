@@ -14,40 +14,76 @@ namespace WebsiteDocTruyenChu
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
-              name: "storyChapter",
-              url: "{storySlug}/{chapterSlug}",
-              defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+             name: "global chat",
+             url: "message/{action}/{id}",
+             defaults: new { controller = "Message", action = "Index" }
             );
 
             routes.MapRoute(
-              name: "story",
-              url: "{storySlug}",
-              defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+              name: "Category",
+              url: "the-loai/{slug}",
+              defaults: new { controller = "Page", action = "Category" }
             );
 
             routes.MapRoute(
-               name: "List",
-               url: "list/{slug}",
-               defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+             name: "Category (full)",
+             url: "the-loai/{slug}/hoan",
+             defaults: new { controller = "Page", action = "Category" }
+            );
+
+            routes.MapRoute(
+                name: "seach-by-name",
+                url: "tim-kiem/{payload}",
+                defaults: new { controller = "Home", action = "SearchStories" }
             );
 
             routes.MapRoute(
                 name: "Author",
-                url: "authors/{slug}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                url: "tac-gia/{slug}",
+                defaults: new { controller = "Home", action = "SearchResult" }
             );
 
             routes.MapRoute(
-                name: "Category",
-                url: "categories/{slug}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                name: "Search result",
+                url: "ket-qua/{payload}",
+                defaults: new { controller = "Home", action = "SearchResult" }
             );
 
             routes.MapRoute(
-                name: "Default",
-                url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+              name: "list",
+              url: "danh-sach/{slug}",
+              defaults: new { controller = "page", action = "Category" }
+           );
+
+            routes.MapRoute(
+             name: "filter stories by chapter count",
+             url: "top-truyen/{slug}",
+             defaults: new { controller = "Page", action = "Category" }
             );
+
+            routes.MapRoute(
+              name: "Story",
+              url: "doc-truyen/{storySlug}",
+              defaults: new { controller = "Page", action = "Story" }
+            );
+
+            routes.MapRoute(
+              name: "StoryChapter",
+              url: "doc-truyen/{storySlug}/{chapterSlug}",
+              defaults: new { controller = "Page", action = "StoryChapter" }
+            );
+
+            routes.MapRoute(
+                name: "FilterHotStories",
+                url: "loc/truyen-hot/{slug}",
+                defaults: new { controller = "Home", action = "FilterHotStories" }
+            );
+
+            routes.MapRoute(
+            name: "Default",
+            url: "{controller}/{action}/{id}",
+            defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+           );
         }
     }
 }

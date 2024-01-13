@@ -30,7 +30,7 @@ window.loadingFullPage = function () {
 }
 window.objConfigFont = [
     {
-        name: 'roboto', 
+        name: 'roboto',
         value: "'Roboto Condensed', sans-serif",
     },
     {
@@ -138,24 +138,21 @@ $(document).ready(function () {
     const wrapperSkeletonStoriesHot = $(".wrapper-skeleton")
     if (selectStoriesHot) {
         function handleChangeListHot(category_id) {
-            fetch(route('get.list.story.hot'), {
-                method: 'POST',
+            fetch('/loc/truyen-hot/' + category_id, {
+                method: 'GET',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': window.SuuTruyen.csrfToken,
-                },
-                body: JSON.stringify({
-                    category_id: category_id
-                })
+                }
             })
                 .then(res => res.json())
                 .then(data => {
+                    //console.log(data)
                     if (data.success) {
                         var html = $(data.html);
-                        var list = $('.section-stories-hot__list:not(.wrapper-skeleton)', html);
-                        $('.section-stories-hot__list:not(.wrapper-skeleton)').replaceWith(list);
+                        $('.section-stories-hot__list:not(.wrapper-skeleton)').html(html)
                         wrapperSkeletonStoriesHot.addClass('d-none')
+                        $('.section-stories-hot__list:not(.wrapper-skeleton)').removeClass('d-none')
                     }
                 })
                 .catch(function (error) {
@@ -173,15 +170,15 @@ $(document).ready(function () {
 
             $('.section-stories-hot__list').addClass('d-none')
             wrapperSkeletonStoriesHot.removeClass('d-none')
-
             handleChangeListHot(categoryId)
         })
 
         const themeMode = $(".theme_mode")
         if (themeMode) {
+            themeMode.prop("checked", window.getCookie("bg_color") == 'dark');
             themeMode.on('change', function (e) {
                 let valueThemeMode = $(this).is(":checked") ? 'dark' : 'light'
-
+                window.eraseCookie("bg_color")
                 window.setCookie('bg_color', valueThemeMode, 1)
                 if ($(this).is(":checked")) {
                     $("body").addClass('dark-theme')
@@ -223,5 +220,5 @@ $(document).ready(function () {
             }
 
         }, 50000);
-    }  
+    }
 })

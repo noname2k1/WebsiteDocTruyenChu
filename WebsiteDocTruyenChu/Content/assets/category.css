@@ -1,0 +1,29 @@
+.category_story_item {
+    border-top: 1px solid #ccc;
+    border-bottom: 1px dashed #ccc;
+}
+
+    .category_story_item:not(.category_story_item:first-child) {
+        border-top: unset;
+    }
+
+.category_story_name {
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 25px;
+    border-bottom: 2px solid transparent;
+}
+
+
+    .category_story_name:hover {
+        border-bottom: 2px solid #000;
+    }
+
+.last_chapter_wrapper {
+    min-width: 120px;
+    text-align: left;
+}
+
+.category_desc {
+    /* text-align: justify; */
+}

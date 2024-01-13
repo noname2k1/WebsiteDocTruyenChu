@@ -1,0 +1,87 @@
+﻿@model WebsiteDocTruyenChu.Models.ViewModelTwoParams<List<DatabaseProvider.Author>, IPagedList<WebsiteDocTruyenChu.DTOs.CategoryStoryDTO>>
+@using PagedList
+@using PagedList.Mvc;
+
+@section Styles {
+    <link rel="stylesheet" href="@Url.Content("~/Content/assets/category.css")">
+}
+
+<div class="container">
+    <div class="row align-items-start">
+        <div class="col-12 col-md-8 col-lg-9 mb-3">
+            <div class="head-title-global d-flex justify-content-between">
+                <div class="col-12 col-md-12 col-lg-12 head-title-global__left d-flex justify-content-between  align-items-center ">
+                    <h2 class="me-2 mb-0 border-bottom border-secondary pb-1">
+                        <span href="#" class="d-block text-decoration-none text-dark fs-4 category-name text-capitalize"
+                              title="Ngôn Tình">@Session["routeTitle"].ToString().ToLower()</span>
+                        </h2>
+                        @if (Request.Url.AbsolutePath.Contains("hoan") || Request.Url.AbsolutePath.Contains("full"))
+                        {
+                            <a href="@Url.Action("Category","Page", new { slug = ViewBag.Slug })" class="text-decoration-none text-dark last_chapter_wrapper text-uppercase px-2">@Session["routeTitle"].ToString().ToLower()</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Category","Page", new { slug = ViewBag.Slug })/hoan" class="text-decoration-none text-dark last_chapter_wrapper text-uppercase px-2">@Session["routeTitle"].ToString().ToLower() (Hoàn)</a>
+                        }
+                    </div>
+                </div>
+
+                <div class="">
+                    <div class="">
+                        @foreach (var story in Model.Item2)
+                        {
+                            <div class="text-decoration-none d-flex py-2 category_story_item">
+                                <div class="px-2">
+                                    <img src="@story.coverImage" alt="@story.name" class="" width="180" height="80"
+                                         loading="lazy">
+                                </div>
+                                <div class="px-2 flex-grow-1 justify-content-center d-flex flex-column ">
+                                    <div class="d-flex align-items-center gap-2 ">
+                                        <a href="@Url.Action("Story","Page", new { storySlug = story.slug })"
+                                           class="text-one-row text-dark mb-0 text-decoration-none category_story_name">
+                                            @story.name
+                                        </a>
+
+                                        <div class="list-badge">
+                                            @if (story.status.ToLower() == "full")
+                                            {
+                                                <span class="story-item__badge badge text-bg-success">Full</span>
+                                            }
+                                            @if (story.isHot)
+                                            {
+                                                <span class="story-item__badge story-item__badge-hot badge text-bg-danger">Hot</span>
+                                            }
+                                            @* <span class="story-item__badge story-item__badge-new badge text-bg-info text-light">New</span>*@
+                                        </div>
+                                    </div>
+                                    <h6 class="text-one-row text-dark"><em>@(Model.Item1.Any(author => author.slug.ToLower() == story.author) ? Model.Item1.Find(author => author.slug.ToLower() == story.author).name : "Không có tên tác giả")</em></h6>
+                                </div>
+                                <div class="d-flex align-items-center px-2 last_chapter_wrapper">
+                                    <a href="@Url.Action("StoryChapter","Page", new { storySlug = story.slug, chapterSlug = story.lastChapterSlug })" class="text-decoration-none">Chương @story.lastChapter</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            @Html.Partial("_Pagination", new WebsiteDocTruyenChu.Models.PaginationModel()
+       {
+           PageCount = ViewBag.PageCount,
+           CurrentPage = ViewBag.Page
+       })
+            </div>
+            <!-- category desc -->
+        <div class="col-12 col-md-4 col-lg-3">
+            @if (ViewBag.Desc != null || ViewBag.Desc != "")
+            {
+                <div class="category-description bg-light p-3 rounded card-custom">
+                    <p class="category_desc mb-0 h6">
+                        @ViewBag.Desc
+                    </p>
+                </div>
+            }
+            @Html.Action("_CategoriesPane", "Partial")
+            @Html.Action("_TopStoriesPane", "Partial")
+        </div>
+        </div>
+    </div>

@@ -2,7 +2,7 @@ $(document).ready(function () {
     const searchStory = $('.search-story')
     if (searchStory) {
         searchStory.on('keyup', function (e) {
-            // console.log($(this).val());
+            /* console.log($(this).val());*/
             const searchResult = $('.search-result')
             const list = searchResult.find('.list-group')
 
@@ -13,58 +13,66 @@ $(document).ready(function () {
                     list.addClass('d-none')
                 }
             } else {
-                // if ($(this).val().length > 2) {
-                fetch(route('search.story'), {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': window.SuuTruyen.csrfToken,
-                    },
-                    body: JSON.stringify({
-                        key_word: $(this).val()
-                    })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        // console.log(data);
-                        if (data.success) {
-                            let html = ''
-                            if (searchResult) {
-                                searchResult.removeClass('d-none')
-                                list.empty()
-    
-                                searchResult.removeClass('no-result')
-                                list.removeClass('d-none')
+                function debounce(func, delay) {
+                    let timerId;
 
-                                if (data.stories.length > 0 && list) {
-                                    data.stories.forEach(story => {
+                    return function (...args) {
+                        clearTimeout(timerId);
+
+                        timerId = setTimeout(() => {
+                            func.apply(this, args);
+                        }, delay);
+                    };
+                }
+
+                function fetchData(searchTerm) {
+                    // Gọi API fetch ở đây và xử lý dữ liệu trả về
+                    fetch('/tim-kiem/' + searchTerm, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            //console.log(data);
+                            if (data.success) {
+                                let html = ''
+                                if (searchResult) {
+                                    searchResult.removeClass('d-none')
+                                    list.empty()
+                                    searchResult.removeClass('no-result')
+                                    list.removeClass('d-none')
+
+                                    if (data.html.length) {
+                                        list.html(data.html)
+                                    } else {
                                         html += `
-                                                <li class="list-group-item">
-                                                    <a href="${route('story', story.slug)}" class="text-dark hover-title">${story.name}</a>
-                                                </li>
-                                            `
-                                    });
-                                } else {
-                                    html += `
                                     <li class="list-group-item border-0">
                                     Không tìm thấy truyện nào 
                                     </li>
-                                    `
+                                    `;
+                                        list.html(html);
+                                    }
+
                                 }
-                                list.html(html);
                             }
-                        }
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                        if (error.status !== 500) {
-                            let errorMessages = error.responseJSON.errors;
-                        } else {
-                            errorContent = error.responseJSON.message;
-                        }
-                    })
-                // }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                            if (error.status !== 500) {
+                                let errorMessages = error.responseJSON.errors;
+                            } else {
+                                errorContent = error.responseJSON.message;
+                            }
+                        })
+                }
+
+                const debouncedFetchData = debounce(fetchData, 1000); // Thiết lập debounce cho hàm fetchData với khoảng thời gian delay là 300ms
+
+                // Sử dụng hàm debouncedFetchData khi cần gọi API fetch
+                debouncedFetchData($(this).val());
             }
         })
     }

@@ -26,6 +26,11 @@ $(document).ready(function () {
     })
 
     const chapterJump = $('.chapter_jump')
+    chapterJump.click(function (e) {
+        chapterJump.addClass('d-none')
+        $('.select-chapter').toggleClass('d-none')
+    });
+
     $(document).keydown(function (e) {
         switch (e.which) {
             case 87: // W key
@@ -45,7 +50,7 @@ $(document).ready(function () {
         }
 
         // Handle save cookie chapters
-        
+
     });
 
     document.addEventListener('scroll', function () {
