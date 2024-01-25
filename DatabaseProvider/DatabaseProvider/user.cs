@@ -6,7 +6,7 @@ namespace DatabaseProvider
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class user
+    public partial class User
     {
         [Key]
         public int uid { get; set; }
@@ -20,9 +20,13 @@ namespace DatabaseProvider
         [StringLength(50)]
         public string password { get; set; }
 
-        public int? role { get; set; }
+        public int role { get; set; }
 
         [StringLength(100)]
         public string fullname { get; set; }
+
+        public DateTime createdAt { get; set; }
+
+        public DateTime updatedAt { get; set; }
     }
 }

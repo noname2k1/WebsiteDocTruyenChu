@@ -8,10 +8,14 @@ namespace WebsiteDocTruyenChu.Models
 {
     public class Response
     {
-        public bool success { get; set; }
+        public bool Success { get; set; }
         public string message { get; set; }
         public string html { get; set; }
+        public object data { get; set; }
 
-        public List<Story> listStory { get; set; }
+        public Response()
+        {
+            Success = true;
+        }
     }
 }

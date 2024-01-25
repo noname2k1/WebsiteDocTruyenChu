@@ -145,16 +145,58 @@ namespace DBIO
         }
 
         // message
-        public IQueryable<Message> GetMessages(string roomID)
+        public IQueryable<Message> GetMessages(int roomID)
         {
             return model.Messages.Where(m => m.roomID == Convert.ToInt32(roomID));
         }
+
+        // user
+        public IQueryable<User> GetUsers()
+        {
+            return model.Users;
+        }
+        public User GetUserByUserID(int userID)
+        {
+            return model.Users.Where(u => u.uid == userID).FirstOrDefault();
+        }
+        public User GetUserByUserName(string username)
+        {
+            return model.Users.Where(u => u.username == username).FirstOrDefault();
+        }
+
+        public int GetRoleUser(int userID)
+        {
+            return model.Users.Where(u => u.uid == userID).FirstOrDefault().role;
+        }
+        public int GetRoleUser(string username)
+        {
+            return model.Users.Where(u => u.username == username).FirstOrDefault().role;
+        }
+
+        // userDetail
+        public IQueryable<UserDetail> GetUserDetail(string username)
+        {
+            return model.UserDetail.Where(ud => ud.username == username);
+        }
+
 
         // insert obj
         public void AddRecord<T>(T obj)
         {
             model.Set(obj.GetType()).Add(obj);
+            //model.SaveChanges();
+        }
+
+        // update 
+        public void SaveChanges()
+        {
             model.SaveChanges();
+        }
+        // delete obj
+        public void DeleteRecord<T>(T obj)
+        {
+            model.Set(obj.GetType()).Remove(obj);
+            //model.SaveChanges();
         }
     }
 }

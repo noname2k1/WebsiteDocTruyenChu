@@ -7,6 +7,12 @@ namespace WebsiteDocTruyenChu.Helpers
 {
     public class StaticVariables
     {
+        public static int ROLE_ADMIN = 0;
+        public static int ROLE_MOD = 1;
+        public static int ROLE_USER = 2;
+        public static int TYPE_MESSAGE_GLOBAL = 0;
+        public static int TYPE_MESSAGE_PRIVATE = 1;
+        public static int TYPE_MESSAGE_ROOM = 2;
         public static List<Models.ListModel> getListItems()
         {
             List<Models.ListModel> links = new List<Models.ListModel>();

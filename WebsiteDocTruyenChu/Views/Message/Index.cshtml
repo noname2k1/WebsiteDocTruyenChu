@@ -1,31 +1,105 @@
-﻿
+﻿@model WebsiteDocTruyenChu.Models.ViewModelTwoParams<DatabaseProvider.User, DatabaseProvider.Room>
+@using WebsiteDocTruyenChu.DTOs
 @{
-    ViewBag.Title = "Chat";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    UserDTO user = null;
+    if (Session["user"] != null)
+    {
+        user = (UserDTO)Session["user"];
+    }
+}
+@section Styles {
+<link rel="stylesheet" href="@Url.Content("~/Content/assets/message.css")">
 }
 
 <div class="container">
     <h2>Chat</h2>
+    <div class="fullname-wrapper">
+        @if (user != null)
+        {
+            <input type="hidden" id="user-id" value="@user.userID" />
+            <input type="hidden" id="display-name" value="@user.FullName" />
+        }
+    </div>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Global</button>
+            <button class="nav-link active" id="global-tab" data-bs-toggle="tab" data-bs-target="#global-message" type="button" role="tab" aria-controls="global" aria-selected="true">Global</button>
+        </li>
+        <li class="nav-item private-item @(user == null ? "d-none" : "")" role="presentation">
+            <button class="nav-link" id="private-tab" data-bs-toggle="tab" data-bs-target="#private-message" type="button" role="tab" aria-controls="private" aria-selected="false">Private</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Private</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">Account</button>
+            <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab" aria-controls="account" aria-selected="false">Account</button>
         </li>
     </ul>
     <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">...</div>
-        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div>
-        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">...</div>
+        <div class="tab-pane fade show active" id="global-message" role="tabpanel" aria-labelledby="global-tab">
+            <ul id="discussion" class="mt-3">
+                @if (ViewBag.Messages != null)
+                {
+                    foreach (MessageDTO msg in ViewBag.Messages)
+                    {
+                        <li class="message-item"><strong>@msg.Fullname</strong>: @msg.Content <span class="created-at">@msg.CreatedAt</span></li>
+                    }
+                }
+            </ul>
+            @if (user != null)
+            {
+                <div class="message-box">
+                    <input type="text" id="message" />
+                    <input type="button" id="sendmessage" value="Send" />
+                </div>
+            }
+        </div>
+        <div class="tab-pane fade @(user == null ? "d-none" : "")" id="private-message" role="tabpanel" aria-labelledby="private-tab">Private Chat (coming soon)</div>
+        <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
+            <div class="col-md-4">
+                <div class="card" id="account-card">
+                    @Html.AntiForgeryToken()
+                    <div class="authenticate-form-wrapper @(user != null ? "d-none" : "")">
+                        <div class="card-header">
+                            Login
+                        </div>
+                        <div class="card-body">
+                            @*@using (Html.BeginForm("Login", "Home", FormMethod.Post))
+                                {*@
+                            <div class="authenticate-form">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    @Html.TextBox("username", "", new { @id = "username", @class = "form-control", @placeholder = "Username" })
+
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    @Html.Password("password", "", new { @id = "password", @class = "form-control", @placeholder = "Password" })
+                                </div>
+                                <div class="form-group d-none register-item">
+                                    <label for="confirm-password">Password</label>
+                                    <input type="password" name="confirm-password" class="form-control" value="" id="confirm-password" placeholder="confirm password" />
+                                </div>
+                                <div class="form-group d-none register-item">
+                                    <label for="fullname">Fullname (display name)</label>
+                                    @Html.TextBox("fullname", "", new { @id = "fullname", @class = "form-control", @placeholder = "fullname" })
+                                </div>
+                                <div class="form-group mt-2 d-flex justify-content-between align-items-center">
+                                    <input type="submit" name="submit" class="btn btn-primary" value="Login" />
+                                    <a class="switch" style="cursor:pointer;">Register</a>
+                                </div>
+                                <p class="error-text text-danger mb-0 mt-2"></p>
+                            </div>
+                            @* } *@
+                        </div>
+                    </div>
+                    @if (user != null)
+                    {
+                        <div class="welcome @(user == null ? "d-none" : "")">
+                            <h3>Xin chào <strong>@user.FullName</strong></h3>
+                            <button class="bg-primary text-danger logout-btn">Đăng xuất</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-    <input type="text" id="message" />
-    <input type="button" id="sendmessage" value="Send" />
-    <ul id="discussion">
-    </ul>
 </div>
 @section scripts {
     <!--Script references. -->
@@ -37,29 +111,184 @@
     <!--SignalR script to update the chat page and send messages.-->
     <script>
         $(function () {
+            let switchBtn = $('.switch');
+            const token = $('input[name="__RequestVerificationToken"]').val()
+            const errorElement = $('.error-text')
+            const registerBtn = $('input[type="submit"][value="Register"]');
+            const formData = new FormData();
+            formData.append('__RequestVerificationToken', token);
+            formData.append('username', '');
+            formData.append('password', '');
+
+            function toggleMessageBox(parentSelector) {
+                if ($(parentSelector).find('.message-box').length <= 0) {
+                    $(parentSelector).append(
+                        `
+                                 <div class="message-box">
+                                     <input type="text" id="message" />
+                                     <input type="button" id="sendmessage" value="Send" />
+                                 </div>
+                                `
+                    )
+                } else {
+                    $(parentSelector + " .message-box").remove()
+                }
+            }
+
+            $(document).on('click', '.authenticate-form :not(input[type="submit"])', function () {
+                if (errorElement.text) {
+                    errorElement.text('')
+                }
+            })
+
+            $(document).on('click', '.logout-btn', function () {
+                fetch('/Home/Logout', {
+                    method: 'GET'
+                }).then(response => {
+                    return response.json();
+                })
+                    .then(responseData => {
+                        if (responseData.Success) {
+                            if ($('.authenticate-form-wrapper').hasClass('d-none')) {
+                                $('.authenticate-form-wrapper').removeClass('d-none')
+                            }
+                            if (!$('.welcome').hasClass('d-none')) {
+                                $('.welcome').addClass('d-none')
+                            }
+                            $('.authenticate-form input:not(input[type="submit"])').val('')
+                            toggleMessageBox('#global-message')
+                            if (!$('#private-message').hasClass('d-none')) {
+                                $('#private-message').addClass('d-none')
+                                $('.nav-item.private-item').addClass('d-none')
+                            }
+                            $('input#display-name').val("")
+                            $('input#user-id').val("")
+                        }
+                    })
+            })
+
+            function appendContentIfUserExist(res) {
+                if ($('#account-card').find('.welcome').length <= 0) {
+                    $('#account-card').append(
+                        `
+                                 <div class="welcome">
+                                 <h3>Xin chào <strong>${res.Data.data.fullname}</strong></h3>
+                                 <button class="bg-primary text-danger logout-btn">Đăng xuất</button>
+                                 </div>
+                                `
+                    )
+                } else {
+                    if ($('.welcome').hasClass('d-none')) {
+                        $('.welcome').removeClass('d-none')
+                    }
+                }
+                if (!$('.authenticate-form-wrapper').hasClass('d-none')) {
+                    $('.authenticate-form-wrapper').addClass('d-none')
+                }
+                if ($('#private-message').hasClass('d-none')) {
+                    $('#private-message').removeClass('d-none')
+                    $('.nav-item.private-item').removeClass('d-none')
+                }
+                $('.fullname-wrapper').append('')
+                if ($('.fullname-wrapper').find('input#display-name').length <= 0 && $('.fullname-wrapper').find('input#user-id').length <= 0) {
+                    $('.fullname-wrapper').append(
+                        `
+                                 <input type="hidden" id="user-id" value="${res.Data.data.userID}"/>
+                                 <input type="hidden" id="display-name" value="${res.Data.data.fullname}"/>
+                                `
+                    )
+                } else {
+                    $('input#user-id').val(res.Data.data.userID)
+                    $('input#display-name').val(res.Data.data.fullname)
+                }
+                toggleMessageBox('#global-message')
+            }
+
+            $(document).on('click', 'input[type="submit"][value="Login"]', async function () {
+                formData.set('username', $('input[name="username"]').val());
+                formData.set('password', $('input[name="password"]').val());
+                try {
+                    const rawRes = await fetch('/Home/Login', {
+                        method: 'POST',
+                        //headers: {
+                        //    'Content-Type': 'application/json'
+                        //},
+                        body: formData
+                    })
+                    const res = await rawRes.json();
+                    if (!res.Data.Success) {
+                        errorElement.text(res.Data.message)
+                    } else {
+                        appendContentIfUserExist(res)
+                    }
+                } catch (ex) {
+                    console.log(ex)
+                }
+            });
+
+            $(document).on('click', 'input[type="submit"][value="Register"]', function () {
+                formData.set('username', $('input[name="username"]').val());
+                formData.set('password', $('input[name="password"]').val());
+                if (!formData.has('fullname') && !formData.has('confirmPassword')) {
+                    formData.append('fullname', $('input[name="fullname"]').val());
+                    formData.append('confirmPassword', $('input[name="confirm-password"]').val());
+                } else {
+                    formData.set('fullname', $('input[name="fullname"]').val());
+                    formData.set('confirmPassword', $('input[name="confirm-password"]').val());
+                }
+                fetch('/Home/Register', {
+                    method: 'POST',
+                    //headers: {
+                    //    'Content-Type': 'application/json'
+                    //},
+                    body: formData
+                }).then(response => {
+                    return response.json();
+                })
+                    .then(res => {
+                        if (!res.Data.Success) {
+                            errorElement.text(res.Data.message)
+                        } else {
+                            appendContentIfUserExist(res)
+                        }
+                    })
+                    .catch(error => {
+                        // Xử lý lỗi
+                        console.error('Có lỗi xảy ra:', JSON.stringify(error));
+                    });
+            })
+
+            // chuyển giữa login và register form
+            switchBtn.click(function () {
+                const submitBtn = $('input[type="submit"]');
+                $('.register-item').toggleClass('d-none');
+                switchBtn.text() == 'Login' ? switchBtn.text('Register') : switchBtn.text('Login')
+                submitBtn.val() == "Login" ? submitBtn.val("Register") : submitBtn.val("Login")
+                $('#account-card .card-header').text() == 'Login' ? $('#account-card .card-header').text('Register') : $('#account-card .card-header').text('Login')
+            })
+
             // Reference the auto-generated proxy for the hub.
             var chat = $.connection.chatHub;
-
             // Create a function that the hub can call back to display messages.
-            chat.client.addNewMessageToPage = function (name, message) {
+            chat.client.addNewGlobalMessage = function (name, message, createdAt) {
                 // Add the message to the page.
-                $('#discussion').append('<li><strong>' + htmlEncode(name)
-                    + '</strong>: ' + htmlEncode(message) + '</li>');
+                $('#discussion').append('<li class="message-item"><strong>' + htmlEncode(name)
+                    + '</strong>: ' + htmlEncode(message) + `<span class="created-at">${createdAt}</span>` +'</li>');
             };
-
-            // Get the user name and store it to prepend to messages.
-            $('#displayname').val(prompt('Enter your name:', ''));
 
             // Set initial focus to message input box.
             $('#message').focus();
 
             // Start the connection.
             $.connection.hub.start().done(function () {
-                $('#sendmessage').click(function () {
+                // global chat
+                $(document).on('click', '#sendmessage', function () {
                     // Call the Send method on the hub.
-                    chat.server.send($('#displayname').val(), $('#message').val());
-                    // Clear text box and reset focus for next comment.
-                    $('#message').val('').focus();
+                    if ($('#message').val()) {
+                        chat.server.send(+$('input#user-id').val(), $('#display-name').val(), $('#message').val(), 0, null);
+                        // Clear text box and reset focus for next comment.
+                        $('#message').val('').focus();
+                    }
                 });
             });
         });

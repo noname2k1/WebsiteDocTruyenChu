@@ -16,9 +16,11 @@ namespace DatabaseProvider
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
         public virtual DbSet<Room> Rooms { get; set; }
+        public virtual DbSet<RoomMember> RoomMembers { get; set; }
         public virtual DbSet<Story> Stories { get; set; }
         public virtual DbSet<StoryChapter> StoryChapters { get; set; }
-        public virtual DbSet<user> users { get; set; }
+        public virtual DbSet<UserDetail> UserDetail { get; set; }
+        public virtual DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -66,15 +68,39 @@ namespace DatabaseProvider
                 .Property(e => e.nextChapterSlug)
                 .IsUnicode(false);
 
-            modelBuilder.Entity<user>()
+            modelBuilder.Entity<UserDetail>()
                 .Property(e => e.username)
                 .IsUnicode(false);
 
-            modelBuilder.Entity<user>()
+            modelBuilder.Entity<UserDetail>()
+                .Property(e => e.favourites)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserDetail>()
+                .Property(e => e.followers)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserDetail>()
+                .Property(e => e.followings)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserDetail>()
+                .Property(e => e.friends)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserDetail>()
+                .Property(e => e.avatar)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<User>()
+                .Property(e => e.username)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<User>()
                 .Property(e => e.hashPwd)
                 .IsUnicode(false);
 
-            modelBuilder.Entity<user>()
+            modelBuilder.Entity<User>()
                 .Property(e => e.password)
                 .IsUnicode(false);
         }

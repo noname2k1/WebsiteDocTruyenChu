@@ -20,5 +20,9 @@ namespace DatabaseProvider
         public DateTime? updatedAt { get; set; }
 
         public DateTime? deletedAt { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string content { get; set; }
     }
 }

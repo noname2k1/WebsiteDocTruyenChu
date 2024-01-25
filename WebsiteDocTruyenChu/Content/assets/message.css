@@ -1,0 +1,12 @@
+﻿.message-item {
+    list-style:none;
+}
+
+.created-at {
+    display: none;
+    margin-left: 10px;
+}
+
+.message-item:hover .created-at {
+    display: inline;
+}

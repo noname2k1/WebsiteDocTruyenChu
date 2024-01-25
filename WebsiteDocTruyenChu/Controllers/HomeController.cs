@@ -1,5 +1,7 @@
 ﻿using DatabaseProvider;
 using DBIO;
+using Microsoft.SqlServer.Server;
+using Newtonsoft.Json;
 using PagedList;
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using WebsiteDocTruyenChu.DTOs;
+using WebsiteDocTruyenChu.Helpers;
 using WebsiteDocTruyenChu.Models;
 
 namespace WebsiteDocTruyenChu.Controllers
@@ -14,6 +17,151 @@ namespace WebsiteDocTruyenChu.Controllers
     public class HomeController : Controller
     {
         MyDB mydb = new MyDB();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult Login(string username, string password)
+        {
+            JsonResult result = new JsonResult();
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                var errorObj = new ErrorResponse(400, "Vui lòng cung cấp đầy đủ thông tin cần thiết");
+                Response.StatusCode = errorObj.StatusCode;
+                result.Data = errorObj;
+            }
+            else
+            {
+                if (ModelState.IsValid)
+                {
+                    var existedUser = mydb.GetUserByUserName(username);
+                    if (existedUser == null)
+                    {
+                        var errorObj = new ErrorResponse(401);
+                        Response.StatusCode = errorObj.StatusCode;
+                        result.Data = errorObj;
+                    }
+                    else
+                    {
+                        var hashPassword = StaticMethods.GetMD5(password);
+                        if (existedUser.hashPwd != hashPassword)
+                        {
+                            var errorObj = new ErrorResponse(401, "Tài khoản hoặc mật khẩu không chính xác");
+                            Response.StatusCode = errorObj.StatusCode;
+                            result.Data = errorObj;
+                        }
+                        else
+                        {
+                            Session["user"] = new UserDTO()
+                            {
+                                userID = existedUser.uid,
+                                Username = existedUser.username,
+                                FullName = existedUser.fullname,
+                            };
+                            //Session.Timeout = 10;
+                            result.Data = new Models.Response()
+                            {
+                                message = "Đăng nhập thành công",
+                                data = new
+                                {
+                                    userID = existedUser.uid,
+                                    username = existedUser.username,
+                                    fullname = existedUser.fullname
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+            return Json(result);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult Register(string username, string password, string confirmPassword, string fullname)
+        {
+            JsonResult result = new JsonResult();
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword) || string.IsNullOrEmpty(fullname))
+            {
+                var errorObj = new ErrorResponse(400, "Vui lòng cung cấp đầy đủ thông tin cần thiết");
+                Response.StatusCode = errorObj.StatusCode;
+                result.Data = errorObj;
+            }
+            else if (confirmPassword != password)
+            {
+                var errorObj = new ErrorResponse(400, "Nhập lại mật khẩu không khớp");
+                Response.StatusCode = errorObj.StatusCode;
+                result.Data = errorObj;
+            }
+            else
+            {
+                if (ModelState.IsValid)
+                {
+                    var existedUser = mydb.GetUserByUserName(username);
+                    if (existedUser != null)
+                    {
+                        var errorObj = new ErrorResponse(400, "Tên tài khoản đã tồn tại");
+                        Response.StatusCode = errorObj.StatusCode;
+                        result.Data = errorObj;
+                    }
+                    else
+                    {
+                        var hashPassword = StaticMethods.GetMD5(password);
+                        mydb.AddRecord(new User()
+                        {
+                            username = username,
+                            password = password,
+                            hashPwd = hashPassword,
+                            fullname = fullname,
+                            role = StaticVariables.ROLE_USER,
+                            createdAt = DateTime.Now,
+                            updatedAt = DateTime.Now
+                        });
+                        mydb.AddRecord(new UserDetail()
+                        {
+                            username = username,
+                            friends = "[]",
+                            followers = "[]",
+                            followings = "[]",
+                            favourites = "[]",
+                            avatar = null,
+                            bio = null
+                        });
+                        mydb.SaveChanges();
+                        var user = mydb.GetUserByUserName(username);
+                        Session["user"] = new UserDTO()
+                        {
+                            Username = user.username,
+                            FullName = user.fullname,
+                        };
+                        //Session.Timeout = 10;
+                        result.Data = new Models.Response()
+                        {
+                            message = "Đăng ký thành công",
+                            data = new
+                            {
+                                userID = user.uid,
+                                fullname = user.fullname,
+                                username = user.username
+                            }
+                        };
+                    }
+                }
+            }
+            return Json(result);
+        }
+
+        public JsonResult Logout()
+        {
+            if (Session["user"] != null)
+            {
+                Session.Remove("user");
+            }
+            return Json(new Models.Response()
+            {
+                message = "Đã đăng xuất"
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         [OutputCache(Duration = 60)]
         public ActionResult Index()
         {
@@ -93,7 +241,6 @@ namespace WebsiteDocTruyenChu.Controllers
                 html += "<div>Không có truyện nào!</div>";
             }
             Response res = new Response();
-            res.success = true;
             res.message = "get hot stories by slug: [" + slug + "] successful";
             res.html = html;
             return Json(res, JsonRequestBehavior.AllowGet);
@@ -104,7 +251,6 @@ namespace WebsiteDocTruyenChu.Controllers
         {
             Response res = new Response();
             string html = "";
-            res.success = true;
             res.message = "get stories by name: [" + payload + "] successful";
             var stories = mydb.GetStories().Where(s => s.name.Contains(payload)).Take(5).ToList();
             stories.ForEach(s =>

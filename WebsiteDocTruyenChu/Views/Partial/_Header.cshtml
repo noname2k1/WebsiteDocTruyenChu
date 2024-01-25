@@ -52,10 +52,10 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
                            aria-expanded="false">
-                            Theo số chương
+                            Số chương
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
-                            @foreach(WebsiteDocTruyenChu.Models.ListModel item in ViewBag.FilterItemByChapterCount)
+                            @foreach (WebsiteDocTruyenChu.Models.ListModel item in ViewBag.FilterItemByChapterCount)
                             {
                                 <li>
                                     <a class="dropdown-item" href="/top-truyen/@item.Slug">
@@ -64,6 +64,11 @@
                                 </li>
                             }
                         </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="@Url.Action("Index","Message")">
+                            Trao đổi
+                        </a>
                     </li>
                 </ul>
 
@@ -116,7 +121,7 @@
 <div class="header-mobile d-sm-block d-lg-none">
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="@Url.Action("Index","Home")">
                 <img src="@Url.Content("~/Content/assets/images/logo_text.png")" alt="Logo Suu Truyen" srcset="" class="img-fluid"
                      style="width: 200px;">
             </a>
@@ -127,7 +132,7 @@
             <div class="offcanvas offcanvas-end text-bg-dark w-75" tabindex="-1" id="offcanvasDarkNavbar"
                  aria-labelledby="offcanvasDarkNavbarLabel">
                 <div class="offcanvas-header">
-                    <img src="./assets/images/logo_text.png" alt="Logo Suu Truyen" srcset="" class="img-fluid"
+                    <img src="@Url.Content("~/Content/assets/images/logo_text.png")" alt="Logo Suu Truyen" srcset="" class="img-fluid"
                          style="width: 200px;">
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                             aria-label="Close"></button>
