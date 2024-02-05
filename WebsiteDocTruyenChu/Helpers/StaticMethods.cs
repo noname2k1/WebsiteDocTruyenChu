@@ -1,9 +1,12 @@
-﻿using System;
+﻿using DatabaseProvider;
+using DBIO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using WebsiteDocTruyenChu.DTOs;
 
 namespace WebsiteDocTruyenChu.Helpers
 {
@@ -22,6 +25,12 @@ namespace WebsiteDocTruyenChu.Helpers
 
             }
             return byte2String;
+        }
+
+        public static bool CheckAdminPageAccess(UserDTO user)
+        {
+            if (user == null) return false;
+            return user.Role == StaticVariables.ROLE_ADMIN || user.Role == StaticVariables.ROLE_MOD;
         }
     }
 }

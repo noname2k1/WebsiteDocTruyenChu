@@ -19,6 +19,11 @@ namespace DBIO
             return model.Categories.ToList();
         }
 
+        public IQueryable<Category> GetCategories2()
+        {
+            return model.Categories;
+        }
+
         // author
         public IQueryable<Author> GetAuthors()
         {
@@ -145,9 +150,13 @@ namespace DBIO
         }
 
         // message
+        public IQueryable<Message> GetMessages()
+        {
+            return model.Messages;
+        }
         public IQueryable<Message> GetMessages(int roomID)
         {
-            return model.Messages.Where(m => m.roomID == Convert.ToInt32(roomID));
+            return model.Messages.Where(m => m.roomID == roomID);
         }
 
         // user

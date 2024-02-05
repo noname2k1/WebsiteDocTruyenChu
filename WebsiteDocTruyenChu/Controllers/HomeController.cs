@@ -56,6 +56,7 @@ namespace WebsiteDocTruyenChu.Controllers
                                 userID = existedUser.uid,
                                 Username = existedUser.username,
                                 FullName = existedUser.fullname,
+                                Role = existedUser.role,
                             };
                             //Session.Timeout = 10;
                             result.Data = new Models.Response()
@@ -132,6 +133,7 @@ namespace WebsiteDocTruyenChu.Controllers
                         {
                             Username = user.username,
                             FullName = user.fullname,
+                            Role = existedUser.role,
                         };
                         //Session.Timeout = 10;
                         result.Data = new Models.Response()

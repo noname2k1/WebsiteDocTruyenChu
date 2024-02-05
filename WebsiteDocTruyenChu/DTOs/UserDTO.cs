@@ -10,5 +10,7 @@ namespace WebsiteDocTruyenChu.DTOs
         public int userID { get; set; }
         public string Username { get; set; }
         public string FullName { get; set; }
+
+        public int Role {  get; set; }
     }
 }

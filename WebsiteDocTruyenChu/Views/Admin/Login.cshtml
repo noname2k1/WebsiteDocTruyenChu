@@ -1,0 +1,143 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Admin Authenticate Page";
+}
+
+
+@section Styles {
+    <link href="@Url.Content("~/Content/admin/authenticate.css")" rel="stylesheet" />
+}
+
+<div class="bg-gradient-primary">
+
+    <div class="container" style="height: 100vh;">
+
+        <!-- Outer Row -->
+        <div class="row justify-content-center align-items-center h-100">
+
+            <div class="col-xl-10 col-lg-12 col-md-9">
+
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <!-- Nested Row within Card Body -->
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block">
+                                <div class="bg-login-image m-5 h-100"></div>
+                            </div>
+                            <div class="col-lg-6 pt-5 pb-5">
+                                <div class="ps-5 ps-lg-0 pt-5 pe-5 pb-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                    </div>
+                                    <form class="user">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group">
+                                            <input type="text" class="form-control form-control-user"
+                                                   id="username" aria-describedby="name"
+                                                   name="username"
+                                                   placeholder="Enter Username...">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" class="form-control form-control-user"
+                                                   id="password" name="password" placeholder="Password">
+                                        </div>
+                                        @*<div class="form-group">
+                                            <div class="custom-control custom-checkbox small">
+                                                <input type="checkbox" class="custom-control-input" id="customCheck">
+                                                <label class="custom-control-label" for="customCheck">
+                                                    Remember
+                                                    Me
+                                                </label>
+                                            </div>
+                                        </div>*@
+                                        <button class="btn btn-primary btn-user btn-block" id="login-btn">
+                                            Login
+                                        </button>
+                                        <p class="text-danger error-msg pt-2"></p>
+                                        @*<hr>*@
+                                        @*<a href="#" class="btn btn-google btn-user btn-block">
+                                            <i class="fab fa-google fa-fw"></i> Login with Google
+                                        </a>
+                                        <a href="#" class="btn btn-facebook btn-user btn-block">
+                                            <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
+                                        </a>*@
+                                    </form>
+                                    @*<hr>*@
+                                    @*<div class="text-center">
+                                        <a class="small" href="forgot-password.html">Forgot Password?</a>
+                                    </div>*@
+                                    @*<div class="text-center">
+                                        <a class="small" href="register.html">Create an Account!</a>
+                                    </div>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const usernameInput = $('input[name="username"]');
+            const passwordInput = $('input[name="password"]');
+            const loginBtn = $('button#login-btn');
+            const errorMsg = $('.error-msg');
+            const formData = new FormData();
+            formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+            loginBtn.click(async (e) => {
+                e.preventDefault();
+                loginBtn.text('waiting...')
+                errorMsg.html('')
+                if (formData.has('username') && formData.has('password')) {
+                    formData.set('username', usernameInput.val())
+                    formData.set('password', passwordInput.val())
+                } else {
+                    formData.append('username', usernameInput.val())
+                    formData.append('password', passwordInput.val())
+                }
+                try {
+                    const raw = await fetch('/Home/Login', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const res = await raw.json();
+                    if (res.Data.Success) {
+                        const { userID } = res.Data.data;
+                        const fd = new FormData();
+                        fd.append('userID', Number.parseInt(userID));
+                        const isAllowed = await fetch('/Admin/StayOrBye', {
+                            method: 'POST',
+                            body: fd
+                        });
+                        const response = await isAllowed.json();
+                        if (response.Data.Success) {
+                            if (response.Data.data) {
+                                window.location.href= "/admin";
+                            }
+                        }
+                        else {
+                            errorMsg.html(response.Data.message)
+                        }
+                    } else {
+                        errorMsg.html(res.Data.message)
+                    }
+                } catch (ex) {
+                    console.log(ex);
+                }
+                finally {
+                    loginBtn.text('Login')
+                }
+            })
+            $('input').focus(() => errorMsg.html(''))
+        })
+    </script>
+    }

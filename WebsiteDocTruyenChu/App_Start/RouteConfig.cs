@@ -14,6 +14,18 @@ namespace WebsiteDocTruyenChu
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
+             name: "admin tables",
+             url: "admin/{type}",
+             defaults: new { controller = "Admin", action = "Manager"}
+            );
+
+            routes.MapRoute(
+             name: "table - get more items",
+             url: "service/get-more-items/{type}",
+             defaults: new { controller = "Service", action = "GetMoreItems" }
+            );
+
+            routes.MapRoute(
              name: "global chat",
              url: "message/{action}/{id}",
              defaults: new { controller = "Message", action = "Index" }
