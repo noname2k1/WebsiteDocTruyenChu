@@ -11,59 +11,68 @@ namespace DBIO
 {
     public class MyDB
     {
-        private Model model = new Model();
-
         // category
+        Model model = new Model();
         public List<Category> GetCategories()
         {
-            return model.Categories.ToList();
+            var _model = new Model();
+            return _model.Categories.ToList();
         }
 
         public IQueryable<Category> GetCategories2()
         {
-            return model.Categories;
+            Model _model = new Model();
+            return _model.Categories;
         }
 
         // author
         public IQueryable<Author> GetAuthors()
         {
-            return model.Authors;
+            var _model = new Model();
+            return _model.Authors;
         }
 
         public Author GetAuthor(string authorSlug)
         {
-            return model.Authors.Where(author => author.slug == authorSlug.ToLower()).FirstOrDefault();
+            var _model = new Model();
+            return _model.Authors.Where(author => author.slug == authorSlug.ToLower()).FirstOrDefault();
         }
 
         // story
         public IQueryable<Story> GetStories()
         {
-            return model.Stories;
+            var _model = new Model();
+            return _model.Stories;
         }
 
         public IQueryable<Story> GetStoriesByStatus(string status)
         {
-            return model.Stories.Where(story => story.status.ToLower() == status.ToLower());
+            Model _model = new Model();
+            return _model.Stories.Where(story => story.status.ToLower() == status.ToLower());
         }
 
         public IQueryable<Story> GetHotStories()
         {
-            return model.Stories.Where(story => story.isHot);
+            Model _model = new Model();
+            return _model.Stories.Where(story => story.isHot);
         }
 
         public IQueryable<Story> GetHotStories(string categorySlug)
         {
-            return model.Stories.Where(story => story.isHot && story.genres.Contains(categorySlug.ToLower()));
+            var _model = new Model();
+            return _model.Stories.Where(story => story.isHot && story.genres.Contains(categorySlug.ToLower()));
         }
 
         public IQueryable<Story> GetStoriesOrderByField(string field = "storyID", int typeOrderBy = 0)
         {
-            return model.Stories.OrderBy(field + " " + (typeOrderBy == 0 ? "ASC" : "DESC"));
+            var _model = new Model();
+            return _model.Stories.OrderBy(field + " " + (typeOrderBy == 0 ? "ASC" : "DESC"));
         }
 
         public IQueryable<Story> GetStoriesByCategory(string categorySlug, string status = "")
         {
-            IQueryable<Story> stories = model.Stories.Where(s => s.genres.Contains(categorySlug.ToLower()));
+            var _model = new Model();
+            IQueryable<Story> stories = _model.Stories.Where(s => s.genres.Contains(categorySlug.ToLower()));
             if (status != "")
             {
                 stories = stories.Where(s => s.status == status);
@@ -73,45 +82,46 @@ namespace DBIO
 
         public IQueryable<Story> GetStoriesByList(string listSlug, string status = "")
         {
-            IQueryable<Story> stories = model.Stories;
+            var _model = new Model();
+            IQueryable<Story> stories = _model.Stories;
             switch (listSlug)
             {
                 case "truyen-moi-cap-nhat":
-                    stories = model.Stories;
+                    stories = _model.Stories;
                     break;
                 case "truyen-hot":
-                    stories = model.Stories.Where(s => s.isHot);
+                    stories = _model.Stories.Where(s => s.isHot);
                     break;
                 case "truyen-full":
-                    stories = model.Stories.Where(s => s.status.ToLower() == "full");
+                    stories = _model.Stories.Where(s => s.status.ToLower() == "full");
                     break;
                 case "duoi-100-chuong":
-                    stories = model.Stories
-                    .Where(s => model.StoryChapters
+                    stories = _model.Stories
+                    .Where(s => _model.StoryChapters
                         .GroupBy(sc => sc.storySlug)
                         .Where(g => g.Count() < 100)
                         .Select(g => g.Key)
                         .Contains(s.slug));
                     break;
                 case "100-500-chuong":
-                    stories = model.Stories
-                   .Where(s => model.StoryChapters
+                    stories = _model.Stories
+                   .Where(s => _model.StoryChapters
                        .GroupBy(sc => sc.storySlug)
                        .Where(g => g.Count() >= 100 & g.Count() <= 500)
                        .Select(g => g.Key)
                        .Contains(s.slug));
                     break;
                 case "500-1000-chuong":
-                    stories = model.Stories
-                   .Where(s => model.StoryChapters
+                    stories = _model.Stories
+                   .Where(s => _model.StoryChapters
                        .GroupBy(sc => sc.storySlug)
                        .Where(g => g.Count() > 500 & g.Count() <= 1000)
                        .Select(g => g.Key)
                        .Contains(s.slug));
                     break;
                 case "tren-1000-chuong":
-                    stories = model.Stories
-                   .Where(s => model.StoryChapters
+                    stories = _model.Stories
+                   .Where(s => _model.StoryChapters
                        .GroupBy(sc => sc.storySlug)
                        .Where(g => g.Count() > 1000)
                        .Select(g => g.Key)
@@ -130,39 +140,46 @@ namespace DBIO
         // story Chapter
         public IQueryable<StoryChapter> GetChapters()
         {
-            return model.StoryChapters;
+            var _model = new Model();
+            return _model.StoryChapters;
         }
         public IQueryable<StoryChapter> GetChapters(string storySlug)
         {
+            var _model = new Model();
             string lowercaseSlug = storySlug.ToLower();
-            return model.StoryChapters.Where(c => c.storySlug == lowercaseSlug);
+            return _model.StoryChapters.Where(c => c.storySlug == lowercaseSlug);
         }
 
         // room
         public IQueryable<Room> GetRooms()
         {
-            return model.Rooms;
+            var _model = new Model();
+            return _model.Rooms;
         }
 
         public IQueryable<Room> GetRooms(string roomID)
         {
-            return model.Rooms.Where(r => r.roomID == Convert.ToInt32(roomID));
+            var _model = new Model();
+            return _model.Rooms.Where(r => r.roomID == Convert.ToInt32(roomID));
         }
 
         // message
         public IQueryable<Message> GetMessages()
         {
-            return model.Messages;
+            var _model = new Model();
+            return _model.Messages;
         }
         public IQueryable<Message> GetMessages(int roomID)
         {
-            return model.Messages.Where(m => m.roomID == roomID);
+            var _model = new Model();
+            return _model.Messages.Where(m => m.roomID == roomID);
         }
 
         // user
         public IQueryable<User> GetUsers()
         {
-            return model.Users;
+            var _model = new Model();
+            return _model.Users;
         }
         public User GetUserByUserID(int userID)
         {
@@ -170,22 +187,25 @@ namespace DBIO
         }
         public User GetUserByUserName(string username)
         {
+            var _model = new Model();
             return model.Users.Where(u => u.username == username).FirstOrDefault();
         }
 
         public int GetRoleUser(int userID)
         {
-            return model.Users.Where(u => u.uid == userID).FirstOrDefault().role;
+            var _model = new Model();
+            return _model.Users.Where(u => u.uid == userID).FirstOrDefault().role;
         }
         public int GetRoleUser(string username)
         {
-            return model.Users.Where(u => u.username == username).FirstOrDefault().role;
+            var _model = new Model();
+            return _model.Users.Where(u => u.username == username).FirstOrDefault().role;
         }
 
         // userDetail
-        public IQueryable<UserDetail> GetUserDetail(string username)
+        public UserDetail GetUserDetail(string username)
         {
-            return model.UserDetail.Where(ud => ud.username == username);
+            return model.UserDetail.Where(ud => ud.username == username).FirstOrDefault();
         }
 
 
@@ -207,5 +227,6 @@ namespace DBIO
             model.Set(obj.GetType()).Remove(obj);
             //model.SaveChanges();
         }
+
     }
 }

@@ -5,7 +5,10 @@ using Newtonsoft.Json;
 using PagedList;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using WebsiteDocTruyenChu.DTOs;
@@ -16,12 +19,11 @@ namespace WebsiteDocTruyenChu.Controllers
 {
     public class HomeController : Controller
     {
-        MyDB mydb = new MyDB();
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult Login(string username, string password)
         {
+            MyDB mydb = new MyDB();
             JsonResult result = new JsonResult();
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
@@ -80,6 +82,7 @@ namespace WebsiteDocTruyenChu.Controllers
         [ValidateAntiForgeryToken]
         public JsonResult Register(string username, string password, string confirmPassword, string fullname)
         {
+            MyDB mydb = new MyDB();
             JsonResult result = new JsonResult();
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword) || string.IsNullOrEmpty(fullname))
             {
@@ -167,9 +170,13 @@ namespace WebsiteDocTruyenChu.Controllers
         [OutputCache(Duration = 60)]
         public ActionResult Index()
         {
+            MyDB mydb = new MyDB();
             Session["routeName"] = "Home";
             ViewBag.Title = "Đọc truyện chữ online";
-            var hotStories = mydb.GetHotStories().Take(16).Select(s => new HomeStoryImageDTO
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var hotStoriesTask = Task.Run(() => mydb.GetHotStories().Take(16).Select(s => new HomeStoryImageDTO
             {
                 name = s.name,
                 slug = s.slug,
@@ -177,9 +184,9 @@ namespace WebsiteDocTruyenChu.Controllers
                 insideImage = s.insideImage,
                 isHot = s.isHot,
                 status = s.status,
-            }).ToList();
-            List<Category> categories = mydb.GetCategories();
-            var newestStories = mydb.GetStoriesOrderByField("updatedAt", 1).Take(30).Select(s => new HomeStoryNoImageDTO
+            }).ToListAsync());
+            var categoriesTask = Task.Run(() => mydb.GetCategories2().ToListAsync());
+            var newestStoriesTask = Task.Run(() => mydb.GetStoriesOrderByField("updatedAt", 1).Take(30).Select(s => new HomeStoryNoImageDTO
             {
                 name = s.name,
                 slug = s.slug,
@@ -189,8 +196,8 @@ namespace WebsiteDocTruyenChu.Controllers
                 status = s.status,
                 lastChapter = s.lastChapter,
                 lastChapterSlug = s.lastChapterSlug
-            }).ToList();
-            var fullStories = mydb.GetStoriesByStatus("Full").Take(16).Select(s => new HomeStoryImageDTO
+            }).ToListAsync());
+            var fullStoriesTask = Task.Run(() => mydb.GetStoriesByStatus("Full").Take(16).Select(s => new HomeStoryImageDTO
             {
                 name = s.name,
                 slug = s.slug,
@@ -199,14 +206,24 @@ namespace WebsiteDocTruyenChu.Controllers
                 isHot = s.isHot,
                 status = s.status,
                 lastChapterSlug = s.lastChapterSlug
-            }).ToList();
+            }).ToListAsync());
+
+            Task.WaitAll(categoriesTask, hotStoriesTask, fullStoriesTask, newestStoriesTask);
+
+            stopwatch.Stop();
+            TimeSpan elapsedTime = stopwatch.Elapsed;
+            string elapsedTimeString = elapsedTime.ToString();
+
+            // In ra thời gian chạy
+            Debug.WriteLine("Thời gian chạy: " + elapsedTimeString);
+
             ViewModelWithFourParams<List<HomeStoryImageDTO>, List<Category>, List<HomeStoryNoImageDTO>, List<HomeStoryImageDTO>> ViewModel =
                 new ViewModelWithFourParams<List<HomeStoryImageDTO>, List<Category>, List<HomeStoryNoImageDTO>, List<HomeStoryImageDTO>>
                 {
-                    Item1 = hotStories,
-                    Item2 = categories,
-                    Item3 = newestStories,
-                    Item4 = fullStories,
+                    Item1 = hotStoriesTask.Result,
+                    Item2 = categoriesTask.Result,
+                    Item3 = newestStoriesTask.Result,
+                    Item4 = fullStoriesTask.Result,
                 };
             return View(ViewModel);
         }
@@ -214,6 +231,7 @@ namespace WebsiteDocTruyenChu.Controllers
         // GET: /loc/truyen-hot/:categorySlug
         public JsonResult FilterHotStories(string slug)
         {
+            MyDB mydb = new MyDB();
             var hotStories = slug == "all" ? mydb.GetHotStories().Take(16).ToList() : mydb.GetHotStories(slug).Take(16).ToList();
             string html = "";
             if (hotStories.Count > 0)
@@ -251,6 +269,7 @@ namespace WebsiteDocTruyenChu.Controllers
         // tim-kiem/:payload
         public JsonResult SearchStories(string payload)
         {
+            MyDB mydb = new MyDB();
             Response res = new Response();
             string html = "";
             res.message = "get stories by name: [" + payload + "] successful";

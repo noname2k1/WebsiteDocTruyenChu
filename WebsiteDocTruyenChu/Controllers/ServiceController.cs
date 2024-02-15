@@ -113,19 +113,13 @@ namespace WebsiteDocTruyenChu.Controllers
         public JsonResult GetMoreItems(string type)
         {
             MyDB myDB = new MyDB();
-            Stream req = Request.InputStream;
-            req.Seek(0, System.IO.SeekOrigin.Begin);
-            string json = new StreamReader(req).ReadToEnd();
-            //System.Diagnostics.Debug.WriteLine(json);
 
-            DataTablesRequest request = JsonConvert.DeserializeObject<DataTablesRequest>(json);
+            DataTablesRequest request = StaticMethods.RequestBodyConverter<DataTablesRequest>(Request);
 
             var draw = request.draw;
             var sortColumn = request.columns[request.order[0].column].name;
             var sortColumnDir = request.order[0].dir;
             var searchValue = request.search.value;
-
-
 
             //Paging Size (10,20,50,100)
             int pageSize = request.length;
@@ -213,6 +207,8 @@ namespace WebsiteDocTruyenChu.Controllers
                             author = myDB.GetAuthor(story.author).name,
                             coverImage = story.coverImage,
                             insideImage = story.insideImage,
+                            lastChapter = story.lastChapter,
+                            lastChapterSlug = story.lastChapterSlug,
                             status = story.status,
                             isHot = story.isHot,
                             genres = story.genres,
@@ -221,7 +217,7 @@ namespace WebsiteDocTruyenChu.Controllers
                             description = story.description,
                             createdAt = story.createdAt,
                             updatedAt = story.updatedAt
-                        });
+                        }); ;
                     }
                     break;
                 case "rooms":
@@ -268,6 +264,22 @@ namespace WebsiteDocTruyenChu.Controllers
                 data = data,
             });
 
+        }
+
+        [ActionName("authors")]
+        public JsonResult GetAuthors()
+        {
+            var JR = new JsonResult();
+            JR.Data = new Response()
+            {
+                message = "Get authors successfully",
+                data = new MyDB().GetAuthors().Select(a => new
+                {
+                    a.name,
+                    a.slug
+                }).ToList()
+            };
+            return Json(JR, JsonRequestBehavior.AllowGet);
         }
     }
 }

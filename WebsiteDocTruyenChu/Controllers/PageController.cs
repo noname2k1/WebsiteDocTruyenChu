@@ -4,7 +4,10 @@ using Microsoft.Ajax.Utilities;
 using PagedList;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using WebsiteDocTruyenChu.DTOs;
@@ -38,13 +41,14 @@ namespace WebsiteDocTruyenChu.Controllers
         [OutputCache(Duration = 60)]
         public ActionResult Category(string slug)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             int limit = 30;
             bool getFull = Request.Url.AbsolutePath.Contains("hoan");
             List<ListModel> listModels = StaticVariables.getListItems();
             List<ListModel> filtersByChapterCount = StaticVariables.getFilterByChapterCount();
             IQueryable<Story> iQueryableStories;
-            IPagedList<CategoryStoryDTO> stories;
-            var authors = myDB.GetAuthors().ToList();
+            var authorsTask = Task.Run(() => myDB.GetAuthors().ToListAsync());
             // lọc theo danh-sach
             if (listModels.Any(model => model.Slug == slug))
             {
@@ -74,15 +78,17 @@ namespace WebsiteDocTruyenChu.Controllers
             {
                 page = 1;
             }
-            int totalStories = iQueryableStories.Count();
+            var totalStories = iQueryableStories.Count();
             int pageCount = (int)Math.Ceiling((double)totalStories / limit);
             if (page > pageCount)
             {
                 page = pageCount;
             }
+
             ViewBag.Page = page;
             ViewBag.PageCount = pageCount;
-            stories = iQueryableStories.Select(s => new CategoryStoryDTO
+
+            var storiesTask = Task.Run(() => iQueryableStories.Skip(page > 1 ? page : 1).Take(limit).Select(s => new CategoryStoryDTO
             {
                 name = s.name,
                 slug = s.slug,
@@ -92,11 +98,21 @@ namespace WebsiteDocTruyenChu.Controllers
                 lastChapter = s.lastChapter,
                 lastChapterSlug = s.lastChapterSlug,
                 status = s.status,
-            }).ToPagedList(page > 1 ? page : 1, limit);
-            ViewModelTwoParams<List<Author>, IPagedList<CategoryStoryDTO>> viewModel = new ViewModelTwoParams<List<Author>, IPagedList<CategoryStoryDTO>>
+            }).ToListAsync());
+
+            Task.WhenAll(authorsTask, storiesTask);
+
+            stopWatch.Stop();
+            TimeSpan elapsedTime = stopWatch.Elapsed;
+            string elapsedTimeString = elapsedTime.ToString();
+
+            // In ra thời gian chạy
+            Debug.WriteLine("Thời gian chạy: " + elapsedTimeString);
+
+            ViewModelTwoParams<List<Author>, List<CategoryStoryDTO>> viewModel = new ViewModelTwoParams<List<Author>, List<CategoryStoryDTO>>
             {
-                Item1 = authors,
-                Item2 = stories
+                Item1 = authorsTask.Result,
+                Item2 = storiesTask.Result
             };
             return View(viewModel);
         }
@@ -110,7 +126,7 @@ namespace WebsiteDocTruyenChu.Controllers
             {
                 page = 1;
             }
-            int totalStories = iQueryableStories.Count();
+            var totalStories = iQueryableStories.Count();
             int pageCount = (int)Math.Ceiling((double)totalStories / limit);
             if (page > pageCount)
             {
@@ -119,23 +135,28 @@ namespace WebsiteDocTruyenChu.Controllers
             ViewBag.Page = page;
             ViewBag.PageCount = pageCount;
 
-            Story story = myDB.GetStories().Where(s => s.slug == storySlug.ToLower()).FirstOrDefault();
-            var storyChapters = iQueryableStories.OrderBy(c => c.storyChapterID).Select(sc => new StoryChapterDTO
+            var storyTask = Task.Run(() => myDB.GetStories().Where(s => s.slug == storySlug.ToLower()).FirstOrDefaultAsync());
+            var storyChaptersTask = Task.Run(() => iQueryableStories.OrderBy(c => c.storyChapterID).Skip(page > 1 ? page : 1).Take(limit).Select(sc => new StoryChapterDTO
             {
                 slug = sc.slug,
                 title = sc.title,
-            }).ToPagedList(page > 1 ? page : 1, limit);
+            }).ToListAsync());
 
-            Author author = myDB.GetAuthor(story.author.ToLower());
+            var author = myDB.GetAuthor(storyTask.Result.author.ToLower());
+            var CategoriesTask = Task.Run(() => myDB.GetCategories());
+
+            Task.WhenAll(storyTask, storyChaptersTask, CategoriesTask);
+
             Session["routeName"] = "Story";
-            Session["routeTitle"] = story.name;
-            ViewBag.Title = story.name;
-            ViewBag.Categories = myDB.GetCategories();
+            Session["routeTitle"] = storyTask.Result.name;
+            ViewBag.Title = storyTask.Result.name;
+            ViewBag.Categories = CategoriesTask.Result;
             ViewBag.AuthorName = author.name;
-            ViewModelTwoParams<Story, IPagedList<StoryChapterDTO>> viewModel = new ViewModelTwoParams<Story, IPagedList<StoryChapterDTO>>
+
+            ViewModelTwoParams<Story, List<StoryChapterDTO>> viewModel = new ViewModelTwoParams<Story, List<StoryChapterDTO>>
             {
-                Item1 = story,
-                Item2 = storyChapters
+                Item1 = storyTask.Result,
+                Item2 = storyChaptersTask.Result
             };
             return View(viewModel);
         }

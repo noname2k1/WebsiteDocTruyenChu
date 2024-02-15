@@ -37,7 +37,7 @@ $(document).ready(function () {
                         .then(res => res.json())
                         .then(data => {
                             //console.log(data);
-                            if (data.success) {
+                            if (data.Success) {
                                 let html = ''
                                 if (searchResult) {
                                     searchResult.removeClass('d-none')

@@ -12,11 +12,12 @@ const labels = [];
 const formData = new FormData()
 
 export const loadPieChart = async () => {
+    const pieChartStatus = document.querySelector(".chart-pie-status");
     if (document.body.dataset.reload) {
-        document.querySelector(".chart-pie-status").textContent = "Reject";
+        pieChartStatus.textContent = "Reject";
         return;
     }
-    document.querySelector(".chart-pie-status").textContent = "Loading...";
+    pieChartStatus.textContent = "Loading...";
     const getCategories = await fetch("/Service/GetCategories");
     const resCategories = await getCategories.json();
     if (resCategories.Data.Success) {

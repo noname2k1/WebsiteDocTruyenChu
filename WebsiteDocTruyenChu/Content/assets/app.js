@@ -148,7 +148,7 @@ $(document).ready(function () {
                 .then(res => res.json())
                 .then(data => {
                     //console.log(data)
-                    if (data.success) {
+                    if (data.Success) {
                         var html = $(data.html);
                         $('.section-stories-hot__list:not(.wrapper-skeleton)').html(html)
                         wrapperSkeletonStoriesHot.addClass('d-none')

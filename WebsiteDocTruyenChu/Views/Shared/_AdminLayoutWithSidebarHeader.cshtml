@@ -56,7 +56,7 @@
 
     <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
+         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -82,13 +82,13 @@
 
     <!-- Custom scripts for all pages-->
     <script src="@Url.Content("~/Content/admin/sb-admin-2.min.js")"></script>
-
     <!-- Page level plugins -->
     <script src="@Url.Content("~/Content/chart.js/Chart.min.js")"></script>
 
-    <!-- Page level custom scripts -->
-    <script type="module" src="@Url.Content("~/Content/demo/adminPrimary.js")"></script>
+    <!-- TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/vfrt17cmy9vl3ahib8ph1zhu2767f3kfl5ug8v4rpyviejam/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>

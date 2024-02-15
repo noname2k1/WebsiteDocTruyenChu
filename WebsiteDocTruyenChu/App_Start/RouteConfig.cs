@@ -15,8 +15,8 @@ namespace WebsiteDocTruyenChu
 
             routes.MapRoute(
              name: "admin tables",
-             url: "admin/{type}",
-             defaults: new { controller = "Admin", action = "Manager"}
+             url: "admin/manager/{type}",
+             defaults: new { controller = "Admin", action = "Manager" }
             );
 
             routes.MapRoute(

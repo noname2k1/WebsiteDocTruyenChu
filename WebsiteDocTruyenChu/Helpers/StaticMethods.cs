@@ -1,12 +1,15 @@
 ﻿using DatabaseProvider;
 using DBIO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using WebsiteDocTruyenChu.DTOs;
+using static WebsiteDocTruyenChu.Controllers.ServiceController;
 
 namespace WebsiteDocTruyenChu.Helpers
 {
@@ -31,6 +34,15 @@ namespace WebsiteDocTruyenChu.Helpers
         {
             if (user == null) return false;
             return user.Role == StaticVariables.ROLE_ADMIN || user.Role == StaticVariables.ROLE_MOD;
+        }
+
+        public static T RequestBodyConverter<T>(HttpRequestBase Request)
+        {
+            Stream req = Request.InputStream;
+            req.Seek(0, System.IO.SeekOrigin.Begin);
+            string json = new StreamReader(req).ReadToEnd();
+            System.Diagnostics.Debug.WriteLine(json);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }

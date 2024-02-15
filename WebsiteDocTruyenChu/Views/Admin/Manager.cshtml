@@ -1,4 +1,4 @@
-﻿@model WebsiteDocTruyenChu.Models.ViewModelTwoParams<string,List<string>>
+﻿@model WebsiteDocTruyenChu.Models.ViewModelTwoParams<string, List<string>>
 @*@using System.Text.RegularExpressions;*@
 @{
     Layout = "~/Views/Shared/_AdminLayoutWithSidebarHeader.cshtml";
@@ -6,7 +6,12 @@
 
 @section Styles {
     <link href="@Url.Content("~/Content/datatables/dataTables.bootstrap4.min.css")" rel="stylesheet">
-    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+          rel="stylesheet" />
 }
 
 <!-- Page Heading -->
@@ -56,30 +61,48 @@
     </div>
 </div>
 
-<div class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="crud-modal" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"><span class="modal-action"></span> Record</h5>
+                <h5 class="modal-title" id="crud-modal"><span class="modal-action text-capitalize"></span> Record</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form class="crud-form">
                     <div class="form-group">
                         <label for="recipient-name" class="col-form-label">Recipient:</label>
                         <input type="text" class="form-control" id="recipient-name">
-                    </div>
-                    <div class="form-group">
-                        <label for="message-text" class="col-form-label">Message:</label>
-                        <textarea class="form-control" id="message-text"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Execute</button>
+                <button type="button" class="btn btn-primary" id="submit-btn">Execute</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- delete Modal -->
+<div class="modal fade" id="removeModal" tabindex="-1" role="dialog" aria-labelledby="removeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeModalLabel">Remove Record</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure want to remove this record?
+                <input type="hidden" name="id" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="remove-ok-btn">OK</button>
             </div>
         </div>
     </div>
@@ -89,7 +112,8 @@
     <!-- Page level plugins -->
     <script src="@Url.Content("~/Content/datatables/jquery.dataTables.min.js")"></script>
     <script src="@Url.Content("~/Content/datatables/dataTables.bootstrap4.min.js")"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 
     <!-- Page level custom scripts -->
-    <script src="@Url.Content("~/Content/demo/datatables-demo.js")"></script>
+    <script type="module" src="@Url.Content("~/Content/demo/datatables-demo.js")"></script>
 }

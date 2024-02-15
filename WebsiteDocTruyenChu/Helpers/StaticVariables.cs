@@ -30,6 +30,5 @@ namespace WebsiteDocTruyenChu.Helpers
             links.Add(new Models.ListModel("Trên 1000", "tren-1000-chuong"));
             return links;
         }
-
     }
 }

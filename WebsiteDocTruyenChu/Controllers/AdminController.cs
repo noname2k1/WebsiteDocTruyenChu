@@ -1,16 +1,21 @@
 ﻿using DatabaseProvider;
 using DBIO;
 using Microsoft.Ajax.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.UI.WebControls;
 using WebsiteDocTruyenChu.DTOs;
+using WebsiteDocTruyenChu.Filters;
 using WebsiteDocTruyenChu.Helpers;
 using WebsiteDocTruyenChu.Models;
 using WebsiteDocTruyenChu.Models.Admin;
+using static WebsiteDocTruyenChu.Controllers.ServiceController;
 
 namespace WebsiteDocTruyenChu.Controllers
 {
@@ -18,13 +23,9 @@ namespace WebsiteDocTruyenChu.Controllers
     {
         // GET: Admin
         MyDB myDB = new MyDB();
+        [RoleGuard(Roles = "0,1")]
         public ActionResult Index()
         {
-            //var myUser = (UserDTO)Session["user"];
-            //if (myUser == null || !StaticMethods.CheckAdminPageAccess(myUser))
-            //{
-            //    return RedirectToAction("Login");
-            //}
             var CategoryCount = myDB.GetCategories().Count();
             var StoryCount = myDB.GetStories().Count();
             var UserCount = myDB.GetUsers().Count();
@@ -41,8 +42,7 @@ namespace WebsiteDocTruyenChu.Controllers
 
         public ActionResult Login()
         {
-            var myUser = (UserDTO)Session["user"];
-            if (myUser != null && StaticMethods.CheckAdminPageAccess(myUser))
+            if (Session["user"] != null)
             {
                 return RedirectToAction("Index");
             }
@@ -72,6 +72,8 @@ namespace WebsiteDocTruyenChu.Controllers
         }
 
         // Other Pages
+        //[RoleGuard(Roles = "0,1")] 
+        // role admin: 0, moderator: 1, user: 2
         public ActionResult Manager(string type)
         {
             ViewBag.Title = char.ToUpper(type.Trim()[0]) + type.Trim().Substring(1);
@@ -123,6 +125,7 @@ namespace WebsiteDocTruyenChu.Controllers
                         "Status / Is Hot",
                         "Genres",
                         "Rating Count/ Score",
+                        "Description"
                     });
                     break;
             }
@@ -135,5 +138,129 @@ namespace WebsiteDocTruyenChu.Controllers
             return View(viewModel);
         }
 
+        [HttpPost]
+        //[RoleGuard(Roles = "0,1")] 
+        public JsonResult Add(string id)
+        {
+            var Jr = new JsonResult();
+            switch (id.ToLower())
+            {
+                case "users":
+                    var request = StaticMethods.RequestBodyConverter<UserModel>(Request);
+                    var existedUser = myDB.GetUserByUserName(request.username);
+                    if (existedUser == null)
+                    {
+                        myDB.AddRecord(new User()
+                        {
+                            username = request.username,
+                            password = request.password,
+                            hashPwd = StaticMethods.GetMD5(request.password),
+                            fullname = request.fullname,
+                            role = StaticVariables.ROLE_USER,
+                            createdAt = DateTime.Now,
+                            updatedAt = DateTime.Now
+                        });
+                        myDB.AddRecord(new UserDetail()
+                        {
+                            username = request.username,
+                            friends = "[]",
+                            followers = "[]",
+                            followings = "[]",
+                            favourites = "[]",
+                            avatar = null,
+                            bio = null
+                        });
+                        Jr.Data = new Response()
+                        {
+                            message = "Add user successfuly",
+                        };
+                    }
+                    else
+                    {
+                        var errorObj = new ErrorResponse(400, "User existed");
+                        Jr.Data = errorObj;
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+            myDB.SaveChanges();
+
+            return Json(Jr);
+        }
+
+        [HttpPost]
+        //[RoleGuard(Roles = "0")]
+        public JsonResult Edit(string id)
+        {
+            var Jr = new JsonResult();
+            switch (id.ToLower())
+            {
+                case "users":
+                    var request = StaticMethods.RequestBodyConverter<UserModel>(Request);
+                    var existedUser = myDB.GetUserByUserName(request.username);
+                    if (existedUser != null)
+                    {
+                        existedUser.fullname = request.fullname;
+                        existedUser.password = request.password;
+                        existedUser.role = Convert.ToInt32(request.role);
+                        existedUser.hashPwd = StaticMethods.GetMD5(request.password);
+                        Jr.Data = new Response()
+                        {
+                            message = "Edit user successfuly",
+                        };
+                    }
+                    else
+                    {
+                        var errorObj = new ErrorResponse(400, "User doesn't exist");
+                        Jr.Data = errorObj;
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+            myDB.SaveChanges();
+
+            return Json(Jr);
+        }
+
+        [HttpPost]
+        //[RoleGuard(Roles = "0")]
+        public JsonResult Remove(string id)
+        {
+            var type = id;
+            var Jr = new JsonResult();
+            var ID = Request.QueryString["id"];
+            switch (type.ToLower())
+            {
+                case "users":
+                    var user = myDB.GetUserByUserID(Convert.ToInt32(ID));
+                    if (user != null)
+                    {
+                        var userDetail = myDB.GetUserDetail(user.username);
+                        if (userDetail != null)
+                        {
+                            myDB.DeleteRecord(userDetail);
+                            myDB.SaveChanges();
+                        }
+                        myDB.DeleteRecord(user);
+                        Jr.Data = new Response()
+                        {
+                            message = "Remove user",
+                        };
+                    }
+                    else
+                    {
+                        var errorObj = new ErrorResponse(400, "User doesn't exist");
+                        Jr.Data = errorObj;
+                    }
+                    break;
+                default: break;
+            }
+            myDB.SaveChanges();
+            return Json(Jr);
+        }
     }
 }
