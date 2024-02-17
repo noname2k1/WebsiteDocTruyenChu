@@ -15,7 +15,7 @@
 }
 
 <!-- Page Heading -->
-<h1 class="h3 mb-2 text-gray-800">@ViewBag.Title</h1>
+<h1 class="h3 mb-2 text-gray-800">@ViewBag.Title@(String.IsNullOrEmpty(Request.QueryString["query"]) ? "" : ": " + Request.QueryString["query"])</h1>
 <p class="mb-4">
     @ViewBag.Title Management
 </p>
@@ -37,7 +37,7 @@
                         }
                         @foreach (string label in Model.Item2)
                         {
-                            <th>@label</th>
+                            <th class="text-capitalize">@label</th>
                         }
                         <th>Options</th>
                     </tr>
@@ -50,7 +50,7 @@
                         }
                         @foreach (string label in Model.Item2)
                         {
-                            <th>@label</th>
+                            <th class="text-capitalize">@label</th>
                         }
                         <th>Options</th>
                     </tr>

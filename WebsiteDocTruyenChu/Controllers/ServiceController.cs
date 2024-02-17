@@ -120,6 +120,7 @@ namespace WebsiteDocTruyenChu.Controllers
             var sortColumn = request.columns[request.order[0].column].name;
             var sortColumnDir = request.order[0].dir;
             var searchValue = request.search.value;
+            var query = Request.QueryString["query"];
 
             //Paging Size (10,20,50,100)
             int pageSize = request.length;
@@ -152,6 +153,30 @@ namespace WebsiteDocTruyenChu.Controllers
                     //Paging
                     data = tempUsers.Skip(skip).Take(pageSize).ToList<dynamic>();
                     break;
+                case "user-detail":
+                    recordsTotal = myDB.GetUserDetails().Count();
+                    var tempUserDetail = myDB.GetUserDetails();
+                    //Search
+                    if (!string.IsNullOrEmpty(searchValue))
+                    {
+                        tempUserDetail = tempUserDetail.Where(u => u.udID.ToString() == searchValue || u.username.Contains(searchValue));
+                    }
+                    //Sorting
+                    if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
+                    {
+                        tempUserDetail = tempUserDetail.OrderBy(sortColumn + " " + sortColumnDir);
+                    }
+                    else
+                    {
+                        tempUserDetail = tempUserDetail.OrderBy(u => u.udID);
+                    }
+                    if (!String.IsNullOrEmpty(query))
+                    {
+                        tempUserDetail = tempUserDetail.Where(u => u.username == query);
+                    }
+                    //Paging
+                    data = tempUserDetail.Skip(skip).Take(pageSize).ToList<dynamic>();
+                    break;
                 case "categories":
                     recordsTotal = myDB.GetCategories2().Count();
                     var tempCategories = myDB.GetCategories2();
@@ -175,85 +200,137 @@ namespace WebsiteDocTruyenChu.Controllers
                     data = tempCategories.Skip(skip).Take(pageSize).ToList<dynamic>();
                     break;
                 case "stories":
-                    recordsTotal = myDB.GetStories().Count();
-                    var tempStories = myDB.GetStories();
-                    //Search
-                    if (!string.IsNullOrEmpty(searchValue))
+                    if (!String.IsNullOrEmpty(query))
                     {
-                        string authorName = myDB.GetAuthor(searchValue) != null ? myDB.GetAuthor(searchValue).name : "";
-                        tempStories = tempStories.Where(s => s.storyID.ToString() == searchValue || s.name.Contains(searchValue) || authorName.Contains(searchValue)
-                        || s.description.Contains(searchValue) || s.rateCount.ToString() == searchValue || s.rateScore.ToString() == searchValue || s.isHot.ToString() == searchValue
-                        || s.slug.Contains(searchValue) || s.genres.Contains(searchValue) || s.status.Contains(searchValue) || s.lastChapter.Contains(searchValue)
-                        );
-                    }
-                    //Sorting
-                    if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
-                    {
-                        tempStories = tempStories.OrderBy(sortColumn + " " + sortColumnDir);
+                        var storySlug = query;
+                        recordsTotal = myDB.GetChapters(storySlug).Count();
+                        var tempChapters = myDB.GetChapters(storySlug);
+                        //Search
+                        if (!string.IsNullOrEmpty(searchValue))
+                        {
+                            string authorName = myDB.GetAuthor(searchValue) != null ? myDB.GetAuthor(searchValue).name : "";
+                            tempChapters = tempChapters.Where(s => s.storyChapterID.ToString() == searchValue || s.title.Contains(searchValue)
+                            || s.storyName.Contains(searchValue) || s.storySlug.ToString() == searchValue || s.content.Contains(searchValue));
+                        }
+                        //Sorting
+                        if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
+                        {
+                            tempChapters = tempChapters.OrderBy(sortColumn + " " + sortColumnDir);
+                        }
+                        else
+                        {
+                            tempChapters = tempChapters.OrderBy(c => c.storyChapterID);
+                        }
+                        //Paging
+                        data = tempChapters.Skip(skip).Take(pageSize).ToList<dynamic>();
                     }
                     else
                     {
-                        tempStories = tempStories.OrderBy(u => u.storyID);
-                    }
-                    //Paging
-                    var stories = tempStories.Skip(skip).Take(pageSize).ToList<dynamic>();
-                    foreach (var story in stories.ToList())
-                    {
-                        data.Add(new AdminStoryDTO()
+                        recordsTotal = myDB.GetStories().Count();
+                        var tempStories = myDB.GetStories();
+                        //Search
+                        if (!string.IsNullOrEmpty(searchValue))
                         {
-                            storyID = story.storyID,
-                            name = story.name,
-                            slug = story.slug,
-                            author = myDB.GetAuthor(story.author).name,
-                            coverImage = story.coverImage,
-                            insideImage = story.insideImage,
-                            lastChapter = story.lastChapter,
-                            lastChapterSlug = story.lastChapterSlug,
-                            status = story.status,
-                            isHot = story.isHot,
-                            genres = story.genres,
-                            rateCount = story.rateCount,
-                            rateScore = story.rateScore,
-                            description = story.description,
-                            createdAt = story.createdAt,
-                            updatedAt = story.updatedAt
-                        }); ;
+                            string authorName = myDB.GetAuthor(searchValue) != null ? myDB.GetAuthor(searchValue).name : "";
+                            tempStories = tempStories.Where(s => s.storyID.ToString() == searchValue || s.name.Contains(searchValue) || authorName.Contains(searchValue)
+                            || s.description.Contains(searchValue) || s.rateCount.ToString() == searchValue || s.rateScore.ToString() == searchValue || s.isHot.ToString() == searchValue
+                            || s.slug.Contains(searchValue) || s.genres.Contains(searchValue) || s.status.Contains(searchValue) || s.lastChapter.Contains(searchValue)
+                            );
+                        }
+                        //Sorting
+                        if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
+                        {
+                            tempStories = tempStories.OrderBy(sortColumn + " " + sortColumnDir);
+                        }
+                        else
+                        {
+                            tempStories = tempStories.OrderBy(u => u.storyID);
+                        }
+                        //Paging
+                        var stories = tempStories.Skip(skip).Take(pageSize).ToList<dynamic>();
+                        foreach (var story in stories.ToList())
+                        {
+                            data.Add(new AdminStoryDTO()
+                            {
+                                storyID = story.storyID,
+                                name = story.name,
+                                slug = story.slug,
+                                author = myDB.GetAuthor(story.author).name,
+                                coverImage = story.coverImage,
+                                insideImage = story.insideImage,
+                                lastChapter = story.lastChapter,
+                                lastChapterSlug = story.lastChapterSlug,
+                                status = story.status,
+                                isHot = story.isHot,
+                                genres = story.genres,
+                                rateCount = story.rateCount,
+                                rateScore = story.rateScore,
+                                description = story.description,
+                                createdAt = story.createdAt,
+                                updatedAt = story.updatedAt
+                            }); ;
+                        }
                     }
                     break;
                 case "rooms":
-                    recordsTotal = myDB.GetRooms().Count();
-                    var tempRooms = myDB.GetRooms();
-                    //Search
-                    if (!string.IsNullOrEmpty(searchValue))
+                    if (!string.IsNullOrEmpty(query))
                     {
-                        tempRooms = tempRooms.Where(r => r.roomID.ToString() == searchValue || r.roomName.Contains(searchValue) || r.type.ToString() == searchValue);
-                    }
-                    //Sorting
-                    if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
-                    {
-                        tempRooms = tempRooms.OrderBy(sortColumn + " " + sortColumnDir);
+                        recordsTotal = myDB.GetRooms().Count();
+                        var tempMessages = myDB.GetMessages(Convert.ToInt32(query));
+                        //Search
+                        if (!string.IsNullOrEmpty(searchValue))
+                        {
+                            tempMessages = tempMessages.Where(m => m.MESSAGEID.ToString() == searchValue || m.roomID.ToString() == searchValue || m.content.Contains(searchValue)
+                            || m.userid.ToString().Contains(searchValue)
+                            );
+                        }
+                        //Sorting
+                        if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
+                        {
+                            tempMessages = tempMessages.OrderBy(sortColumn + " " + sortColumnDir);
+                        }
+                        else
+                        {
+                            tempMessages = tempMessages.OrderBy(u => u.MESSAGEID);
+                        }
+                        //Paging
+                        data = tempMessages.Skip(skip).Take(pageSize).ToList<dynamic>();
                     }
                     else
                     {
-                        tempRooms = tempRooms.OrderBy(u => u.roomID);
-                    }
-                    //Paging
-                    var Rooms = tempRooms.Skip(skip).Take(pageSize).ToList();
-                    foreach (var Room in Rooms)
-                    {
-                        int MessageCount = myDB.GetMessages(Room.roomID).Count();
-                        data.Add(new AdminRoomDTO()
+                        recordsTotal = myDB.GetRooms().Count();
+                        var tempRooms = myDB.GetRooms();
+                        //Search
+                        if (!string.IsNullOrEmpty(searchValue))
                         {
-                            ID = Room.roomID,
-                            Name = Room.roomName,
-                            CreatedAt = Room.createdAt,
-                            UpdatedAt = Room.updatedAt,
-                            DeletedAt = Room.deletedAt,
-                            MessageCount = MessageCount,
-                        });
+                            tempRooms = tempRooms.Where(r => r.roomID.ToString() == searchValue || r.roomName.Contains(searchValue) || r.type.ToString() == searchValue);
+                        }
+                        //Sorting
+                        if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
+                        {
+                            tempRooms = tempRooms.OrderBy(sortColumn + " " + sortColumnDir);
+                        }
+                        else
+                        {
+                            tempRooms = tempRooms.OrderBy(u => u.roomID);
+                        }
+                        //Paging
+                        var Rooms = tempRooms.Skip(skip).Take(pageSize).ToList();
+                        foreach (var Room in Rooms)
+                        {
+                            int MessageCount = myDB.GetMessages(Room.roomID).Count();
+                            data.Add(new AdminRoomDTO()
+                            {
+                                ID = Room.roomID,
+                                Name = Room.roomName,
+                                CreatedAt = Room.createdAt,
+                                UpdatedAt = Room.updatedAt,
+                                DeletedAt = Room.deletedAt,
+                                MessageCount = MessageCount,
+                            });
+                        }
                     }
                     break;
-
             }
 
             return Json(new ResponseDatatablesJquery()

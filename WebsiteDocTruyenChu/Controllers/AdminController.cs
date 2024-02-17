@@ -4,6 +4,7 @@ using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -104,28 +105,71 @@ namespace WebsiteDocTruyenChu.Controllers
                     });
                     break;
                 case "rooms":
-                    tableLabels.AddRange(new[]
+                    if (String.IsNullOrEmpty(Request.QueryString["query"]))
                     {
-                        "ID",
-                        "Name",
-                        "Created At",
-                        "Updated At",
-                        "Message Count"
-                    });
+                        tableLabels.AddRange(new[]
+                        {
+                            "ID",
+                            "Name",
+                            "Created At",
+                            "Updated At",
+                            "Message Count"
+                        });
+                    }
+                    else
+                    {
+                        tableLabels.AddRange(new[]
+                        {
+                            "ID",
+                            "UserID",
+                            "Content",
+                            "Created At",
+                            "Updated At",
+                        });
+                    }
                     break;
                 case "stories":
-                    tableLabels.AddRange(new[]
+                    if (String.IsNullOrEmpty(Request.QueryString["query"]))
                     {
+                        tableLabels.AddRange(new[]
+                        {
+                            "ID",
+                            "Name",
+                            "Slug",
+                            "Author",
+                            "CoverImage",
+                            "InsideImage",
+                            "Status / Is Hot",
+                            "Genres",
+                            "Rating Count/ Score",
+                            "Description"
+                        });
+                    }
+                    else
+                    {
+                        tableLabels.AddRange(new[]
+                        {
+                            "ID",
+                            "title",
+                            "Slug",
+                            "content",
+                            "views",
+                            "created at",
+                            "updated at"
+                        });
+                    }
+                    break;
+                case "user-detail":
+                    tableLabels.AddRange(new[]
+                     {
                         "ID",
-                        "Name",
-                        "Slug",
-                        "Author",
-                        "CoverImage",
-                        "InsideImage",
-                        "Status / Is Hot",
-                        "Genres",
-                        "Rating Count/ Score",
-                        "Description"
+                        "Username",
+                        "Favourites",
+                        "followers",
+                        "followings",
+                        "friends",
+                        "avatar",
+                        "bio"
                     });
                     break;
             }
@@ -202,14 +246,21 @@ namespace WebsiteDocTruyenChu.Controllers
                     var existedUser = myDB.GetUserByUserName(request.username);
                     if (existedUser != null)
                     {
-                        existedUser.fullname = request.fullname;
-                        existedUser.password = request.password;
-                        existedUser.role = Convert.ToInt32(request.role);
-                        existedUser.hashPwd = StaticMethods.GetMD5(request.password);
-                        Jr.Data = new Response()
+                        try
                         {
-                            message = "Edit user successfuly",
-                        };
+                            existedUser.fullname = request.fullname;
+                            existedUser.password = request.password;
+                            existedUser.role = Convert.ToInt32(request.role);
+                            existedUser.hashPwd = StaticMethods.GetMD5(request.password);
+                            Jr.Data = new Response()
+                            {
+                                message = "Edit user successfuly",
+                            };
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+                        }
                     }
                     else
                     {

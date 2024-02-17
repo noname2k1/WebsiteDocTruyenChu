@@ -20,7 +20,8 @@ $(document).ready(async function () {
     }
     /*    getMoreItems(currentType);*/
     const currentUrl = window.location.href;
-    const currentType = currentUrl.split("/")[currentUrl.split("/").length - 1];
+    const currentType = currentUrl.split("/")[currentUrl.split("/").length - 1].split("?")[0];
+    const query = currentUrl.split("/")[currentUrl.split("/").length - 1].split("?")[1]?.split("=")[1] ?? "";
 
     const formatDate = (dateString) => {
         const timestamp = parseInt(dateString.match(/\d+/)[0]);
@@ -35,51 +36,71 @@ $(document).ready(async function () {
         let columns = [];
         switch (type.toLowerCase()) {
             case "stories":
-                columns = columns.concat([
-                    {
-                        class: 'dt-control',
-                        orderable: false,
-                        "searchable": false,
-                        data: null,
-                        defaultContent: '',
-                    },
-                    { data: "storyID", name: "storyID", class: "storyID" },
-                    { data: "name", name: "name", class: "name", class: "name" },
-                    { data: "slug", name: "slug", class: "slug" },
-                    { data: "author", name: "author", class: "author" },
-                    {
-                        data: "coverImage",
-                        name: "coverImage",
-                        "data-name": "coverImage",
-                        render: (data, type, row) => {
-                            return `
+                //console.log(query)
+                if (query) {
+                    columns = columns.concat([
+                        {
+                            class: 'dt-control',
+                            orderable: false,
+                            "searchable": false,
+                            data: null,
+                            defaultContent: '<a href="#">Expand</a>',
+                        },
+                        { data: "storyChapterID", name: "storyChapterID" },
+                        { data: "title", name: "title" },
+                        { data: "slug", name: "slug" },
+                        { data: "content", name: "content", class: "d-none" },
+                        { data: "views", name: "views" },
+                        { data: "createdAt", name: "createdAt", render: (data) => formatDate(data) },
+                        { data: "updatedAt", name: "updatedAt", render: (data) => formatDate(data) },
+                    ])
+                } else {
+                    columns = columns.concat([
+                        {
+                            class: 'dt-control',
+                            orderable: false,
+                            "searchable": false,
+                            data: null,
+                            defaultContent: '<a href="#">Expand</a>',
+                        },
+                        { data: "storyID", name: "storyID", class: "storyID", render: (data, type, row) => `<a href="/admin/manager/stories?query=${row.slug}">${data}</a>` },
+                        { data: "name", name: "name", class: "name", class: "name", render: (data, type, row) => `<a href="/admin/manager/stories?query=${row.slug}">${data}</a>` },
+                        { data: "slug", name: "slug", class: "slug" },
+                        { data: "author", name: "author", class: "author" },
+                        {
+                            data: "coverImage",
+                            name: "coverImage",
+                            "data-name": "coverImage",
+                            render: (data, type, row) => {
+                                return `
                         <div class="d-flex gap-1 align-items-start justify-content-center">
                             <img src="${data}" style="width:100px;height:auto;aspect-ratio: 2/1;" alt="cover-image-${row.name}" />
                         </div>
                     `
+                            },
                         },
-                    },
-                    {
-                        data: "insideImage",
-                        name: "insideImage",
-                        render: (data, type, row) => {
-                            return `
+                        {
+                            data: "insideImage",
+                            name: "insideImage",
+                            render: (data, type, row) => {
+                                return `
                         <div class="d-flex gap-1 align-items-start justify-content-center">
                             <img src="${data}" style="width:100px;height:auto;aspect-ratio: 1/2;" alt="cover-image-${row.name}" />
                         </div>
                     `
+                            },
                         },
-                    },
-                    { data: null, render: (data, type, row) => { return `<span>${row.status}</span> / <span>${row.isHot}</span>` } },
-                    { data: "genres", name: "genres", class: "genres" },
-                    { data: null, render: (data, type, row) => { return `<span>${row.rateCount}</span> / <span>${row.rateScore}</span>` } },
-                    { data: "description", name: "description", class: "description d-none" },
-                ]);
+                        { data: null, render: (data, type, row) => { return `<span>${row.status}</span> / <span>${row.isHot}</span>` } },
+                        { data: "genres", name: "genres", class: "genres" },
+                        { data: null, render: (data, type, row) => { return `<span>${row.rateCount}</span> / <span>${row.rateScore}</span>` } },
+                        { data: "description", name: "description", class: "description d-none" },
+                    ]);
+                }
                 break;
             case "users":
                 columns = columns.concat([
-                    { data: "uid", name: "uid", class: "uid" },
-                    { data: "username", name: "username", class: "username" },
+                    { data: "uid", name: "uid", class: "uid", render: (data, type, row) => `<a href="/admin/manager/user-detail?query=${row.username}">${data}</a>` },
+                    { data: "username", name: "username", class: "username", render: (data, type, row) => `<a href="/admin/manager/user-detail?query=${row.username}">${data}</a>` },
                     { data: "hashPwd", name: "hashPwd", class: "hashPwd" },
                     { data: "password", name: "password", class: "password" },
                     { data: "role", name: "role", class: "role", render: (data, type, row) => data == 0 ? "admin" : data == 1 ? "moderator" : "user" },
@@ -88,14 +109,39 @@ $(document).ready(async function () {
                     { data: "updatedAt", name: "updatedAt", render: (data) => formatDate(data) },
                 ])
                 break;
-            case "rooms":
+            case "user-detail":
                 columns = columns.concat([
-                    { data: "ID", name: "roomID" },
-                    { data: "Name", name: "roomName" },
-                    { data: "CreatedAt", name: "createdAt", render: (data) => formatDate(data) },
-                    { data: "UpdatedAt", name: "updatedAt", render: (data) => formatDate(data) },
-                    { data: "MessageCount", orderable: false },
+                    {
+                        data: "udID", name: "udID"
+                    },
+                    { data: "username", name: "username" },
+                    { data: "favourites", name: "favourites" },
+                    { data: "followers", name: "followers" },
+                    {
+                        data: "followings", name: "followings"
+                    },
+                    { data: "friends", name: "friends" }
+                    ,
+                    { data: "avatar", name: "avatar" }
+                    ,
+                    { data: "bio", name: "bio" }
                 ])
+                break;
+            case "rooms":
+                columns = columns.concat(query ? [
+                    { data: "MESSAGEID", name: "MESSAGEID" },
+                    { data: "userid", name: "userid" },
+                    { data: "content", name: "content" },
+                    { data: "createdAt", name: "createdAt", render: (data) => formatDate(data) },
+                    { data: "updatedAt", name: "updatedAt", render: (data) => formatDate(data) },
+                ] :
+                    [
+                        { data: "ID", name: "roomID" },
+                        { data: "Name", name: "roomName" },
+                        { data: "CreatedAt", name: "createdAt", render: (data) => formatDate(data) },
+                        { data: "UpdatedAt", name: "updatedAt", render: (data) => formatDate(data) },
+                        { data: "MessageCount", orderable: false },
+                    ])
                 break;
             case "categories":
                 columns = columns.concat([
@@ -128,6 +174,20 @@ $(document).ready(async function () {
     function format(d, type) {
         switch (type.toLowerCase()) {
             case "stories":
+                if (query) {
+                    return (
+                        'Story Name: ' +
+                        d.storyName +
+                        '<br>' +
+                        'Content: ' +
+                        '<br>' +
+                        '<div class="p-2" style="border: 1px solid #000;">' + d.content + '</div>' +
+                        '<br>' +
+                        'Created At/ Updated At: ' +
+                        '<br>' +
+                        formatDate(d.createdAt) + " / " + formatDate(d.updatedAt)
+                    );
+                }
                 return (
                     'Story Name: ' +
                     d.name +
@@ -148,7 +208,7 @@ $(document).ready(async function () {
 
     const table = $('#dataTable').DataTable({
         ajax: {
-            url: `/service/get-more-items/${currentType}?skip=0&limit=100`,
+            url: `/service/get-more-items/${currentType}?skip=0&limit=100&query=${query}`,
             type: "POST",
             contentType: "application/json",
             dataType: "json",
@@ -180,7 +240,8 @@ $(document).ready(async function () {
         let tr = event.target.closest('tr');
         let row = table.row(tr);
         let idx = detailRows.indexOf(tr.id);
-
+        const text = row.selector.rows.querySelectorAll("td")[0].querySelector("a");
+        text.textContent == "Shrink" ? text.textContent = "Expand" : text.textContent = "Shrink";
         if (row.child.isShown()) {
             tr.classList.remove('details');
             row.child.hide();
@@ -269,6 +330,20 @@ $(document).ready(async function () {
                     </select>`
             },
             { data: "fullname", name: "fullname" }
+        ],
+        "user-detail": [
+            { data: "udID", name: "udID", type: "hidden" },
+            { data: "username", name: "username" },
+            { data: "favourites", name: "favourites" },
+            { data: "followers", name: "followers" },
+            {
+                data: "followings", name: "followings"
+            },
+            { data: "friends", name: "friends" }
+            ,
+            { data: "avatar", name: "avatar" }
+            ,
+            { data: "bio", name: "bio" }
         ],
         "categories": [
             { data: "categoryID", name: "categoryID", type: "hidden" },

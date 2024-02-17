@@ -160,7 +160,8 @@ namespace DBIO
         public IQueryable<Room> GetRooms(string roomID)
         {
             var _model = new Model();
-            return _model.Rooms.Where(r => r.roomID == Convert.ToInt32(roomID));
+            var roomid = Convert.ToInt32(roomID);
+            return _model.Rooms.Where(r => r.roomID == roomid);
         }
 
         // message
@@ -203,11 +204,19 @@ namespace DBIO
         }
 
         // userDetail
+        public IQueryable<UserDetail> GetUserDetails()
+        {
+            return model.UserDetail;
+        }
         public UserDetail GetUserDetail(string username)
         {
             return model.UserDetail.Where(ud => ud.username == username).FirstOrDefault();
         }
 
+        public UserDetail GetUserDetail(int id)
+        {
+            return model.UserDetail.Where(ud => ud.udID == id).FirstOrDefault();
+        }
 
         // insert obj
         public void AddRecord<T>(T obj)
